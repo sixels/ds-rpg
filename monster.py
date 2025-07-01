@@ -38,11 +38,11 @@ class Monster(Entity):
         self.level = level
 
     @override
-    def get_total_health(self) -> float:
+    def get_total_health(self) -> int:
         pass
 
     @override
-    def get_current_health(self) -> float:
+    def get_current_health(self) -> int:
         pass
 
     @override
