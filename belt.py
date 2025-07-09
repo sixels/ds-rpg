@@ -22,6 +22,7 @@ class Belt:
             self.items[index] is None
             and self.current_weight + item.weight <= self.max_weight
         ):
+            self.current_weight += item.weight
             self.items[index] = item
             return True
         return False
