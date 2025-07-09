@@ -13,19 +13,37 @@ class Belt:
         self.max_weight = max_weight
         self.current_weight = 0.0
 
-    def insert_item(index: int, item: Item) -> bool:
+    def insert_item(self, index: int, item: Item) -> bool:
         """Insere um item no cinto na posição especificada. Retorna True se a inserção for bem-sucedida, False se a posição estiver ocupada ou o peso exceder o máximo."""
-        pass
+        if index < 0 or index >= self.size:
+            return False
 
-    def insert_item_on_empty_slot(item: Item) -> bool:
+        if (
+            self.items[index] is None
+            and self.current_weight + item.weight <= self.max_weight
+        ):
+            self.items[index] = item
+            return True
+        return False
+
+    def insert_item_on_empty_slot(self, item: Item) -> bool:
         """Insere um item no primeiro espaço vazio do cinto. Retorna True se a inserção for bem-sucedida, False se não houver espaço ou o peso exceder o máximo."""
         # dica: procure o primeiro espaço vazio e chame o método insert_item no indíce encontrado
-        pass
+        for index in range(self.size):
+            if self.items[index] is None:
+                return self.insert_item(index, item)
+        return False
 
-    def pick_item(index: int) -> Item | None:
+    def pick_item(self, index: int) -> Item | None:
         """Remove um item do cinto na posição especificada. Retorna o item removido ou None se a posição estiver vazia."""
-        pass
+        item = self.get_item(index)
+        if item is not None:
+            self.items[index] = None
+        return item
 
-    def get_item(index: int) -> Item | None:
+    def get_item(self, index: int) -> Item | None:
         """Retorna o item na posição especificada ou None se a posição estiver vazia."""
-        pass
+        if index < 0 or index >= self.size:
+            return None
+
+        return self.items[index]
