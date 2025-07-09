@@ -1,6 +1,10 @@
+from collections.abc import Callable
 from enum import Enum
+
 from monster import MonsterType
 from rarity import Rarity
+
+DamageMultiplierCallback = Callable[[MonsterType], float]
 
 
 class ItemType(Enum):
@@ -19,24 +23,32 @@ class Item:
         self, name: str, description: str, type: ItemType, weight: float, rarity: Rarity
     ):
         self.name = name
+        self.description = description
         self.type = type
         self.weight = weight
         self.rarity = rarity
-        self.description = description
 
 
 class Weapon(Item):
     damage: int
+    multiplier: DamageMultiplierCallback
 
     def __init__(
-        self, name: str, description: str, weight: float, rarity: Rarity, damage: int
+        self,
+        name: str,
+        description: str,
+        weight: float,
+        rarity: Rarity,
+        damage: int,
+        multiplier: DamageMultiplierCallback = lambda _: 1,  # retorna 1 por padrão
     ):
         super().__init__(name, description, ItemType.WEAPON, weight, rarity)
         self.damage = damage
+        self.multiplier = multiplier
 
-    def do_damage(monster_type: MonsterType) -> int:
+    def do_damage(self, monster_type: MonsterType) -> int:
         """Calcula o dano causado pela arma com base no tipo de monstro."""
-        pass
+        return int(self.damage * self.multiplier(monster_type))
 
 
 class Potion(Item):
@@ -55,4 +67,4 @@ class Potion(Item):
 
     def do_healing(self) -> int:
         """Retorna a quantidade de cura fornecida pela poção."""
-        pass
+        return self.healing_amount
