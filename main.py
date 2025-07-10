@@ -1,3 +1,4 @@
+from misc import typed_print
 from room import Room
 
 
@@ -17,31 +18,22 @@ def main():
     entry_room = Room("Sala 1")
     setup_rooms(entry_room)
 
-    print("Bem-vindo ao jogo!")
-    print("Você está na sala de entrada.")
+    typed_print("Bem-vindo ao jogo! Pressione Ctrl+C para sair a qualquer momento.")
 
     room = entry_room
     while True:
-        print(f"\nVocê está na {room.name}.")
-        print("Saídas disponíveis:")
+        typed_print(f"\nVocê está na {room.name}.")
+        typed_print("Saídas disponíveis:")
         if room.exits.north:
-            print("- Norte")
+            typed_print("- Norte")
         if room.exits.south:
-            print("- Sul")
+            typed_print("- Sul")
         if room.exits.east:
-            print("- Leste")
+            typed_print("- Leste")
         if room.exits.west:
-            print("- Oeste")
-        command = (
-            input(
-                "Digite uma direção para se mover (norte, sul, leste, oeste) ou 'sair' para encerrar: "
-            )
-            .strip()
-            .lower()
-        )
-        if command == "sair":
-            print("Saindo do jogo. Até logo!")
-            break
+            typed_print("- Oeste")
+
+        command = input("sua ação > ").strip().lower()
 
         if command == "norte" and room.exits.north:
             room = room.exits.north
@@ -52,9 +44,14 @@ def main():
         elif command == "oeste" and room.exits.west:
             room = room.exits.west
         else:
-            print("Direção inválida ou não há saída nessa direção. Tente novamente.")
+            typed_print(
+                "Direção inválida ou não há saída nessa direção. Tente novamente."
+            )
             continue
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
