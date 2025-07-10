@@ -11,11 +11,12 @@ def setup_rooms(entry_room: Room):
     entrada -- sala 4 -- sala 5 -- sala 8 --  sala 12 - sala 13
       |         |          |                    |
     sala 2 -- sala 3     sala 9 -- sala 10 -- sala 11
+                                     |
+                                   sala 14
     """
 
     room2 = Room("Sala 2 (monstro)")
     room3 = Room("Sala 3 (bau)")
-
     room4 = Room("Sala 4 (monstro)")
     room5 = Room("Sala 5 (vazia)")
     room6 = Room("Sala 6 (monstro e bau)")
@@ -26,6 +27,7 @@ def setup_rooms(entry_room: Room):
     room11 = Room("Sala 11 (bau)")
     room12 = Room("Sala 12 (monstro)")
     room13 = Room("Sala 13 (monstro final)")
+    room14 = Room("Sala 14 (secreta)")
 
     entry_room.set_exits(south=room2, east=room4)
 
@@ -40,8 +42,7 @@ def setup_rooms(entry_room: Room):
     room10.set_exits(east=room11)
     room11.set_exits(north=room12)
     room12.set_exits(east=room13)
-
-    # Definindo as saídas
+    room13.set_exits(south=room14)
 
 
 def main():
