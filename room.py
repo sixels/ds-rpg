@@ -30,17 +30,16 @@ class Room:
         """Define as saídas da sala."""
         if north is not None:
             north.exits.south = self
+            self.exits.south = south
         if south is not None:
             south.exits.north = self
+            self.exits.north = north
         if east is not None:
             east.exits.west = self
+            self.exits.east = east
         if west is not None:
             west.exits.east = self
-
-        self.exits.north = north
-        self.exits.south = south
-        self.exits.east = east
-        self.exits.west = west
+            self.exits.west = west
 
     def add_item(self, item: Item):
         """Adiciona um item à lista de itens soltos na sala."""
