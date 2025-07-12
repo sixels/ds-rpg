@@ -4,6 +4,7 @@ from backpack import Backpack
 from belt import Belt
 from entity import Entity
 from item import Item
+from item import ItemType
 
 
 class Hero(Entity):
@@ -33,21 +34,28 @@ class Hero(Entity):
 
     def store_item_in_belt(self, index: int, item: Item) -> bool:
         """Insere um item no cinto na posição especificada. Retorna True se a inserção for bem-sucedida, False se a posição estiver ocupada ou o peso exceder o máximo."""
-        pass
+        return self.belt.insert_item_on_empty_slot(self.equipped_item)
+    
 
     def store_item_in_backpack(self, item: Item) -> bool:
         """Insere um item na mochila. Retorna True se a inserção for bem-sucedida, False caso contrário."""
-        pass
+        return self.backpack.insert_item(self.equipped_item)
 
     def store_equipped_item_in_belt(self, index: int) -> bool:
         """Armazena o item equipado no cinto, se possível."""
         # Dica: use o método store_item_in_belt e depois desquipe o item equipado
-        pass
+        if self.store_item_in_belt == True:
+            self.equipped_item == None
+        else:
+            print(f"Não é possível guardar {self.equipped_item.name} pois não há espaço disponível no cinto")
 
     def store_equipped_item_in_backpack(self) -> bool:
         """Armazena o item equipado na mochila, se possível."""
         # Dica: use o método store_item_in_backpack e depois desquipe o item equipado
-        pass
+        if self.store_equipped_item_in_backpack == True:
+            self.equipped_item = None
+        else:
+            print(f"Não é possível guardar {self.equipped_item.name} pois não há espaço disponível na mochila")
 
     def use_item_from_belt(self, index: int) -> bool:
         """
@@ -57,7 +65,13 @@ class Hero(Entity):
 
         Retorna True se o uso for bem-sucedido, False caso contrário.
         """
-        pass
+        
+        if self.belt.items[index].type == ItemType.WEAPON : 
+            self.equipped_item = self.belt.items[index]
+            return True
+        elif self.belt.items[index].type == ItemType.POTION:
+            self.current_health += self.belt.items[index].healing_amount
+    
 
     def use_item_from_backpack(self) -> bool:
         """
@@ -71,16 +85,20 @@ class Hero(Entity):
 
     @override
     def get_total_health(self) -> int:
-        pass
+        return self.base_health
+        
 
     @override
     def get_current_health(self) -> int:
-        pass
+        return self.current_health
 
     @override
     def take_damage(self, damage: int):
-        pass
+        self.current_health -= damage
 
     @override
     def attack(self, other: Entity) -> int:
-        pass
+       attack_total = self.equipped_item.do_damage(other.type)
+       other.take_damage(attack_total)
+       return attack_total
+        
