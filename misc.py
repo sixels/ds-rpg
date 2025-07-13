@@ -12,13 +12,15 @@ def clear_screen():
         os.system("clear")
 
 
-def typed_print(text: str, delay: float = 0.035):
+def typed_print(text: str, delay: float = 0.02):
     """Imprime o texto com um efeito de digitação."""
     import sys
-    import time
+    import select
 
     for char in text:
         sys.stdout.write(char)
         sys.stdout.flush()
-        time.sleep(delay)
+        if select.select([sys.stdin], [], [], delay)[0]:
+            sys.stdin.readline()
+            delay = 0
     print()  # Nova linha após o texto
