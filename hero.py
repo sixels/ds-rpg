@@ -4,6 +4,8 @@ from backpack import Backpack
 from belt import Belt
 from entity import Entity
 from item import Item
+from item import Potion
+from item import Weapon
 from item import ItemType
 
 
