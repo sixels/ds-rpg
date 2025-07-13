@@ -3,32 +3,6 @@ from typing import override
 
 from entity import Entity
 
-def espada_multiplier(target_monster_type: MonsterType) -> int:   
-    if target_monster_type == MonsterType.Human or target_monster_type == MonsterType.Beast:
-        return 2 
-    else:
-        return 1
-        
-def estaca_multiplier(target_monster_type: MonsterType) ->  int:   
-    if target_monster_type == MonsterType.Vampire:
-        return 2
-    else:
-        return 1 
-        
-def cajado_multiplier(target_monster_type: MonsterType) -> int:   
-    if target_monster_type == MonsterType.Demon:
-        return 2
-    else:
-        return 1
-        
-def machado_multiplier(target_monster_type: MonsterType) -> int:   
-    if target_monster_type == MonsterType.Vampire or target_monster_type == MonsterType.Demon:
-        return 1
-    else:
-        return 2
-
-
-
 class MonsterType(Enum):
     """Enumeração para os tipos de monstros."""
 
@@ -80,5 +54,31 @@ class Monster(Entity):
         total_attack = self.base_attack + (self.level * 2)
         other.take_damage(total_attack)
         return total_attack
+
+
+def espada_multiplier(target_monster_type: MonsterType) -> int:   
+    if target_monster_type == MonsterType.Human or target_monster_type == MonsterType.Beast:
+        return 2 
+    else:
+        return 1
+        
+def estaca_multiplier(target_monster_type: MonsterType) ->  int:   
+    if target_monster_type == MonsterType.Vampire:
+        return 2
+    else:
+        return 1 
+        
+def cajado_multiplier(target_monster_type: MonsterType) -> int:   
+    if target_monster_type == MonsterType.Demon:
+        return 2
+    else:
+        return 1
+        
+def machado_multiplier(target_monster_type: MonsterType) -> int:   
+    if target_monster_type == MonsterType.Vampire or target_monster_type == MonsterType.Demon:
+        return 1
+    else:
+        return 2
+
 
    
