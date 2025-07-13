@@ -34,29 +34,33 @@ class Hero(Entity):
 
     def store_item_in_belt(self, index: int, item: Item) -> bool:
         """Insere um item no cinto na posição especificada. Retorna True se a inserção for bem-sucedida, False se a posição estiver ocupada ou o peso exceder o máximo."""
-        return self.belt.insert_item_on_empty_slot(self.equipped_item)
+        return self.belt.insert_item_on_empty_slot(item)
     
 
     def store_item_in_backpack(self, item: Item) -> bool:
         """Insere um item na mochila. Retorna True se a inserção for bem-sucedida, False caso contrário."""
-        return self.backpack.insert_item(self.equipped_item)
+        return self.backpack.insert_item(item)
 
     def store_equipped_item_in_belt(self, index: int) -> bool:
         """Armazena o item equipado no cinto, se possível."""
-        # Dica: use o método store_item_in_belt e depois desquipe o item equipado
-        if self.store_item_in_belt == True:
-            self.equipped_item == None
+        
+        if self.equipped_item: # se tem algum item equipado
+            result = self.store_item_in_belt (index,self.equipped_item)
+            if result == True:
+                self.equipped_item = None
+            return result
         else:
-            print(f"Não é possível guardar {self.equipped_item.name} pois não há espaço disponível no cinto")
-
+            return False
+        
     def store_equipped_item_in_backpack(self) -> bool:
         """Armazena o item equipado na mochila, se possível."""
-        # Dica: use o método store_item_in_backpack e depois desquipe o item equipado
-        if self.store_equipped_item_in_backpack == True:
-            self.equipped_item = None
+        if self.equipped_item: # se tem algum item equipado
+            result = self.store_item_in_backpack (self.equipped_item)
+            if result == True:
+                self.equipped_item = None
+            return result
         else:
-            print(f"Não é possível guardar {self.equipped_item.name} pois não há espaço disponível na mochila")
-
+            return False
     def use_item_from_belt(self, index: int) -> bool:
         """
         Usa um item do cinto.
@@ -65,13 +69,19 @@ class Hero(Entity):
 
         Retorna True se o uso for bem-sucedido, False caso contrário.
         """
-        
-        if self.belt.items[index].type == ItemType.WEAPON : 
-            self.equipped_item = self.belt.items[index]
+        item = self.belt.pick_item(index)
+        if type(item) is Weapon:
+            if self.equipped_item == None:
+                self.equipped_item = item
+                return True
+        elif type(item) is Potion:
+            healing_need = self.base_health - self.current_health
+            actual_healing = min(item.healing_amount,healing_need)
+            self.current_health += actual_healing
             return True
-        elif self.belt.items[index].type == ItemType.POTION:
-            self.current_health += self.belt.items[index].healing_amount
-    
+        else:
+            return False
+        return False
 
     def use_item_from_backpack(self) -> bool:
         """
@@ -81,7 +91,19 @@ class Hero(Entity):
 
         Retorna True se o uso for bem-sucedido, False caso contrário.
         """
-        pass
+        item = self.backpack.pick_item
+        if type(item) is Weapon:
+            if self.equipped_item == None:
+                self.equipped_item = item
+                return True
+        elif type(item) is Potion:
+            healing_need = self.base_health - self.current_health
+            actual_healing = min(item.healing_amount,healing_need)
+            self.current_health += actual_healing
+            return True
+        else:
+            return False
+        return False
 
     @override
     def get_total_health(self) -> int:
