@@ -278,11 +278,15 @@ Diga o nome daquele que salvará o destino.""")
 
         item_found = False
         if "equipado".startswith(item) or "item equipado".startswith(item):
-            if self.player.equipped_item is not None and (
-                self.player.equipped_item.name.lower().startswith(item)
-            ):
+            if self.player.equipped_item:
                 item = self.player.equipped_item
                 item_found = True
+        elif (
+            self.player.equipped_item
+            and self.player.equipped_item.name.lower().startswith(item)
+        ):
+            item = self.player.equipped_item
+            item_found = True
         else:
             room_item = self.take_item_from_room(item)
             if room_item:
