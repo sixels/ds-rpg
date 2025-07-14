@@ -208,7 +208,7 @@ Diga o nome daquele que salvará o destino.""")
         if self.current_room.chest_opened:
             for chest_item in self.current_room.chest.list_itens():
                 if chest_item.name().lower().startswith(item.lower()):
-                    item = chest_item.get_item()
+                    item = chest_item.pick_item()
                     item_found = True
                     break
         if not item_found and self.current_room.dropped_items:
@@ -425,7 +425,7 @@ Diga o nome daquele que salvará o destino.""")
             self.current_room.chest_opened = True
             typed_print("Itens no baú:")
             for item in self.current_room.chest.list_itens():
-                show_item(item, listed=True)
+                show_item(item.view_item(), listed=True)
         elif "sala".startswith(target) or "sala atual".startswith(target):
             if not self.current_room.dropped_items:
                 typed_print("Você não vê nenhum item na sala.")
@@ -482,7 +482,7 @@ Diga o nome daquele que salvará o destino.""")
         if self.current_room.chest_opened:
             for chest_item in self.current_room.chest.list_itens():
                 if chest_item.name().lower().startswith(item_name.lower()):
-                    return chest_item.get_item()
+                    return chest_item.pick_item()
 
         for dropped_item in self.current_room.dropped_items:
             if dropped_item.name.lower().startswith(item_name.lower()):
