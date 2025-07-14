@@ -7,6 +7,7 @@ from monster import Monster, MonsterType
 from rarity import RARITY_COMMON
 from room import Room
 from globals import GAME_MONSTERS
+from health_bar import HealthBar
 HERO_BASE_HEALTH = 100
 HERO_BASE_ATTACK = 5
 HERO_BELT_SIZE = 5
@@ -145,7 +146,7 @@ Diga o nome daquele que salvará o destino.""")
     def handle_help(self, _: dict) -> bool:
         """Mostra a ajuda."""
         actions = Actions()
-        typed_print(actions.show_help())
+        typed_print(actions.show_help)
         return False
 
     def handle_move(self, command: dict) -> bool:
@@ -174,12 +175,11 @@ Diga o nome daquele que salvará o destino.""")
         if target and target != "monstro" and target != self.current_room.monster.name:
             typed_print(f"Você não pode atacar {target} aqui.")
             return False
-
+        
+        clear_screen()
         monster = self.current_room.monster
         damage = self.player.attack(monster)
-        typed_print(
-            f"Você ataca {monster.name} e causa {damage} de dano.\n{monster.name} tem {monster.get_current_health()} de vida restante."
-        )
+        self.player.health_bar.draw()
 
         if not monster.is_alive():
             self.current_room.monster = None
@@ -191,9 +191,7 @@ Diga o nome daquele que salvará o destino.""")
             return False
         else:
             monster_damage = monster.attack(self.player)
-            typed_print(
-                f"{monster.name} ataca você e causa {monster_damage} de dano.\nVocê tem {self.player.get_current_health()} de vida restante."
-            )
+            monster.health_bar.draw()
 
     def handle_pick_item(self, command: dict) -> bool:
         """Armazena um item no cinto ou na mochila."""
@@ -208,7 +206,7 @@ Diga o nome daquele que salvará o destino.""")
         if self.current_room.chest_opened:
             for chest_item in self.current_room.chest.list_itens():
                 if chest_item.name().lower().startswith(item.lower()):
-                    item = chest_item.get_item()
+                    item = chest_item.pick_item()
                     item_found = True
                     break
         if not item_found and self.current_room.dropped_items:
@@ -278,11 +276,15 @@ Diga o nome daquele que salvará o destino.""")
 
         item_found = False
         if "equipado".startswith(item) or "item equipado".startswith(item):
-            if self.player.equipped_item is not None and (
-                self.player.equipped_item.name.lower().startswith(item)
-            ):
+            if self.player.equipped_item:
                 item = self.player.equipped_item
                 item_found = True
+        elif (
+            self.player.equipped_item
+            and self.player.equipped_item.name.lower().startswith(item)
+        ):
+            item = self.player.equipped_item
+            item_found = True
         else:
             room_item = self.take_item_from_room(item)
             if room_item:
@@ -366,7 +368,10 @@ Diga o nome daquele que salvará o destino.""")
             print("olhando o cinto ")
             for i in range(self.player.belt.size):
                 belt_item = self.player.belt.get_item(i)
-                print(f"item {belt_item.name} no cinto")
+                if belt_item == None:
+                    print("Vazio")
+                else:
+                    print(f"item {belt_item.name} no cinto")
                 if belt_item and belt_item.name.lower().startswith(item):
                     if type(belt_item) is Potion:
                         if self.player.use_item_from_belt(i):
@@ -424,9 +429,8 @@ Diga o nome daquele que salvará o destino.""")
 
             self.current_room.chest_opened = True
             typed_print("Itens no baú:")
-            for item in self.current_room.
-            chest.list_itens():
-                show_item(item, listed=True)
+            for item in self.current_room.chest.list_itens():
+                show_item(item.view_item(), listed=True)
         elif "sala".startswith(target) or "sala atual".startswith(target):
             if not self.current_room.dropped_items:
                 typed_print("Você não vê nenhum item na sala.")
@@ -483,7 +487,7 @@ Diga o nome daquele que salvará o destino.""")
         if self.current_room.chest_opened:
             for chest_item in self.current_room.chest.list_itens():
                 if chest_item.name().lower().startswith(item_name.lower()):
-                    return chest_item.get_item()
+                    return chest_item.pick_item()
 
         for dropped_item in self.current_room.dropped_items:
             if dropped_item.name.lower().startswith(item_name.lower()):

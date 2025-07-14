@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import override
+from health_bar import HealthBar
 
 from entity import Entity
 
@@ -38,6 +39,7 @@ class Monster(Entity):
         self.current_health = self.base_health
         self.base_attack = base_attack
         self.level = level
+        self.health_bar = HealthBar(self, color="red")
 
     @override
     def get_total_health(self) -> int:
@@ -50,6 +52,7 @@ class Monster(Entity):
     @override
     def take_damage(self, damage: int):
         self.current_health = max(self.current_health - damage, 0)
+        self.health_bar.update()
 
     @override
     def attack(self, other: Entity) -> int:

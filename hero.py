@@ -6,6 +6,7 @@ from entity import Entity
 from item import Item
 from item import Potion
 from item import Weapon
+from health_bar import HealthBar
 
 
 class Hero(Entity):
@@ -32,6 +33,7 @@ class Hero(Entity):
         self.backpack = Backpack()
         self.belt = Belt(size=belt_size, max_weight=belt_max_weight)
         self.equipped_item = None
+        self.health_bar = HealthBar(self, color="green")
 
     def store_item_in_belt(self, index: int, item: Item) -> bool:
         """Insere um item no cinto na posição especificada. Retorna True se a inserção for bem-sucedida, False se a posição estiver ocupada ou o peso exceder o máximo."""
@@ -120,6 +122,7 @@ class Hero(Entity):
     @override
     def take_damage(self, damage: int):
         self.current_health = max(self.current_health - damage, 0)
+        self.health_bar.update()
 
     @override
     def attack(self, other: Entity) -> int:

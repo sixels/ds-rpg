@@ -56,7 +56,7 @@ class ChestItem:
         self.__item = item
         self.__index = index
 
-    def get_item(self) -> Item | None:
+    def pick_item(self) -> Item | None:
         """Remove o item do baú, retornando um Item."""
         if self.__chest is None:
             return None
@@ -68,6 +68,10 @@ class ChestItem:
         self.__item = None
 
         return item
+
+    def view_item(self) -> Item | None:
+        """Retorna o item sem removê-lo do baú."""
+        return self.__item
 
     def name(self) -> str:
         """Retorna o nome do item."""
