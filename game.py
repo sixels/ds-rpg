@@ -1,12 +1,12 @@
 from action import Actions, ActionType
-from chest import generate_random_chest
+from chest import generate_random_chest, generate_common_chest,generate_epic_chest,generate_legendary_chest,generate_rare_chest,generate_uncommon_chest
 from hero import Hero
 from item import Item, Potion, Weapon
 from misc import clear_screen, typed_print
 from monster import Monster, MonsterType
 from rarity import RARITY_COMMON
 from room import Room
-
+from globals import GAME_MONSTERS
 HERO_BASE_HEALTH = 100
 HERO_BASE_ATTACK = 5
 HERO_BELT_SIZE = 5
@@ -424,7 +424,8 @@ Diga o nome daquele que salvará o destino.""")
 
             self.current_room.chest_opened = True
             typed_print("Itens no baú:")
-            for item in self.current_room.chest.list_itens():
+            for item in self.current_room.
+            chest.list_itens():
                 show_item(item, listed=True)
         elif "sala".startswith(target) or "sala atual".startswith(target):
             if not self.current_room.dropped_items:
@@ -531,27 +532,47 @@ def setup_game_rooms() -> Room:
     entry_room.set_exits(south=room2, east=room4)
 
     room2.set_exits(east=room3)
-    room2.set_monster(
-        Monster(
-            "Zumbi",
-            MonsterType.Undead,
-            base_health=50,
-            base_attack=5,
-            level=1,
-        )
-    )
+    room2.set_monster(GAME_MONSTERS[0])
     room2.set_chest(generate_random_chest())
 
     room3.set_exits(north=room4)
+    room3.set_chest(generate_uncommon_chest())
+  
     room4.set_exits(east=room5)
+    room4.set_chest(generate_common_chest())
+
     room5.set_exits(north=room6, south=room9, east=room8)
+    room5.set_monster(GAME_MONSTERS[1])
+    room5.set_chest(generate_random_chest())
+
     room6.set_exits(east=room7)
+    room6.set_monster(GAME_MONSTERS[3])
+
     room7.set_exits(south=room8)
+    room7.set_chest(generate_epic_chest())
+
     room8.set_exits(east=room12)
+    room8.set_monster(GAME_MONSTERS[5])
+    room8.set_chest(generate_random_chest())
+
     room9.set_exits(east=room10)
+    room9.set_monster(GAME_MONSTERS[2])
+
     room10.set_exits(east=room11, south=room14)
+    room10.set_monster(GAME_MONSTERS[4])
+    room10.set_chest(generate_legendary_chest())
+
     room11.set_exits(north=room12)
+    room11.set_chest(generate_random_chest())
+
     room12.set_exits(east=room13)
+    room12.set_monster(GAME_MONSTERS[7])
+    room12.set_chest(generate_random_chest())
+
+    room13.set_exits(south=room12)
+    room13.set_monster(GAME_MONSTERS[8])
+
+
 
     assert entry_room.exits.south == room2, (
         "Erro ao definir a saída sul da sala de entrada."

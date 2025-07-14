@@ -20,7 +20,11 @@ def typed_print(text: str, delay: float = 0.02):
     for char in text:
         sys.stdout.write(char)
         sys.stdout.flush()
+        """"
+        Funcionalidade de pular dialogos apertando Enter, funciona apenas em Linux:
+        
         if select.select([sys.stdin], [], [], delay)[0]:
             sys.stdin.readline()
             delay = 0
+        """
     print()  # Nova linha após o texto

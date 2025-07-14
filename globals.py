@@ -18,7 +18,14 @@ GAME_MONSTERS = [
         level=1,
     ),
     Monster(
-        "Lobo",
+        "Zumbi",
+        MonsterType.Undead,
+        base_health=50,
+        base_attack=5,
+        level=1,
+    ),
+    Monster(
+        "Lobisomem",
         MonsterType.Beast,
         base_health=40,
         base_attack=9,
@@ -32,14 +39,44 @@ GAME_MONSTERS = [
         level=2,
     ),
     Monster(
-        "Vampiro",
+        "Esqueleto com armadura",
+        MonsterType.Undead,
+        base_health=50,
+        base_attack=7,
+        level=2,
+    ),
+    Monster(
+        "Vampiro Inferior",
+        MonsterType.Vampire,
+        base_health=80,
+        base_attack=10,
+        level=2,
+    ),
+     Monster(
+        "Vampiro Superior",
         MonsterType.Vampire,
         base_health=80,
         base_attack=10,
         level=3,
     ),
-]
+    Monster(
+        "Demônio Maior",
+        MonsterType.Demon,
+        base_health=60,
+        base_attack=9,
+        level=3,
+    ),
+    Monster(
+        "Espírito do Rei",
+        MonsterType.Spirit,
+        base_health=100,
+        base_attack=10,
+        level=3,
+    )
 
+
+    
+]
 GAME_WEAPONS = [
     Weapon(
         name="Espada Curta",

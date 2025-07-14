@@ -57,36 +57,3 @@ class Monster(Entity):
         other.take_damage(total_attack)
         return total_attack
 
-
-def espada_multiplier(target_monster_type: MonsterType) -> int:
-    if (
-        target_monster_type == MonsterType.Human
-        or target_monster_type == MonsterType.Beast
-    ):
-        return 2
-    else:
-        return 1
-
-
-def estaca_multiplier(target_monster_type: MonsterType) -> int:
-    if target_monster_type == MonsterType.Vampire:
-        return 2
-    else:
-        return 1
-
-
-def cajado_multiplier(target_monster_type: MonsterType) -> int:
-    if target_monster_type == MonsterType.Demon:
-        return 2
-    else:
-        return 1
-
-
-def machado_multiplier(target_monster_type: MonsterType) -> int:
-    if (
-        target_monster_type == MonsterType.Vampire
-        or target_monster_type == MonsterType.Demon
-    ):
-        return 1
-    else:
-        return 2
