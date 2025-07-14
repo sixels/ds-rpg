@@ -39,6 +39,7 @@ class Belt:
         """Remove um item do cinto na posição especificada. Retorna o item removido ou None se a posição estiver vazia."""
         item = self.get_item(index)
         if item is not None:
+            self.current_weight -= item.weight
             self.items[index] = None
         return item
 

@@ -6,7 +6,6 @@ from entity import Entity
 from item import Item
 from item import Potion
 from item import Weapon
-from item import ItemType
 
 
 class Hero(Entity):
@@ -16,7 +15,7 @@ class Hero(Entity):
     base_attack: float
     backpack: Backpack
     belt: Belt
-    equipped_item: Item | None
+    equipped_item: Weapon | None
 
     def __init__(
         self,
@@ -36,8 +35,7 @@ class Hero(Entity):
 
     def store_item_in_belt(self, index: int, item: Item) -> bool:
         """Insere um item no cinto na posição especificada. Retorna True se a inserção for bem-sucedida, False se a posição estiver ocupada ou o peso exceder o máximo."""
-        return self.belt.insert_item_on_empty_slot(item)
-    
+        return self.belt.insert_item(index, item)
 
     def store_item_in_backpack(self, item: Item) -> bool:
         """Insere um item na mochila. Retorna True se a inserção for bem-sucedida, False caso contrário."""
@@ -45,24 +43,25 @@ class Hero(Entity):
 
     def store_equipped_item_in_belt(self, index: int) -> bool:
         """Armazena o item equipado no cinto, se possível."""
-        
-        if self.equipped_item: # se tem algum item equipado
-            result = self.store_item_in_belt (index,self.equipped_item)
-            if result == True:
+
+        if self.equipped_item:  # se tem algum item equipado
+            result = self.store_item_in_belt(index, self.equipped_item)
+            if result is True:
                 self.equipped_item = None
             return result
         else:
             return False
-        
+
     def store_equipped_item_in_backpack(self) -> bool:
         """Armazena o item equipado na mochila, se possível."""
-        if self.equipped_item: # se tem algum item equipado
-            result = self.store_item_in_backpack (self.equipped_item)
-            if result == True:
+        if self.equipped_item:  # se tem algum item equipado
+            result = self.store_item_in_backpack(self.equipped_item)
+            if result is True:
                 self.equipped_item = None
             return result
         else:
             return False
+
     def use_item_from_belt(self, index: int) -> bool:
         """
         Usa um item do cinto.
@@ -72,17 +71,20 @@ class Hero(Entity):
         Retorna True se o uso for bem-sucedido, False caso contrário.
         """
         item = self.belt.pick_item(index)
+        if not item:
+            return False
+
         if type(item) is Weapon:
-            if self.equipped_item == None:
+            if self.equipped_item is None:
                 self.equipped_item = item
                 return True
         elif type(item) is Potion:
             healing_need = self.base_health - self.current_health
-            actual_healing = min(item.healing_amount,healing_need)
+            actual_healing = min(item.healing_amount, healing_need)
             self.current_health += actual_healing
             return True
-        else:
-            return False
+
+        self.belt.insert_item(index, item)
         return False
 
     def use_item_from_backpack(self) -> bool:
@@ -95,12 +97,12 @@ class Hero(Entity):
         """
         item = self.backpack.pick_item
         if type(item) is Weapon:
-            if self.equipped_item == None:
+            if self.equipped_item is None:
                 self.equipped_item = item
                 return True
         elif type(item) is Potion:
             healing_need = self.base_health - self.current_health
-            actual_healing = min(item.healing_amount,healing_need)
+            actual_healing = min(item.healing_amount, healing_need)
             self.current_health += actual_healing
             return True
         else:
@@ -110,7 +112,6 @@ class Hero(Entity):
     @override
     def get_total_health(self) -> int:
         return self.base_health
-        
 
     @override
     def get_current_health(self) -> int:
@@ -118,11 +119,13 @@ class Hero(Entity):
 
     @override
     def take_damage(self, damage: int):
-        self.current_health -= damage
+        self.current_health = max(self.current_health - damage, 0)
 
     @override
     def attack(self, other: Entity) -> int:
-       attack_total = self.equipped_item.do_damage(other.type)
-       other.take_damage(attack_total)
-       return attack_total
-        
+        if self.equipped_item is None:
+            attack_total = self.base_attack
+        else:
+            attack_total = self.base_attack + self.equipped_item.do_damage(other.type)
+        other.take_damage(attack_total)
+        return attack_total

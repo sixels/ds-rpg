@@ -5,7 +5,7 @@ class Backpack:
     max_itens: int
     items: list[Item]
 
-    def __init__(self, max_itens: int = 10):
+    def __init__(self, max_itens: int = 30):
         self.items = []
         self.max_itens = max_itens
 

@@ -4,14 +4,14 @@ from enum import Enum
 
 class ActionType(Enum):
     MOVE = "mover"
-    STORE = "guardar"
-    DROP = "remover"
+    STORE_ITEM = "guardar item"
+    DROP_ITEM = "remover item"
     USE_POTION = "usar poção"
-    EQUIP = "equipar"
+    EQUIP_WEAPON = "equipar arma"
     ATTACK = "atacar"
-    SHOW_HELP = "ajuda"
-    SHOW_BACKPACK = "mostrar mochila"
-    SHOW_BELT = "mostrar cinto"
+    SHOW_HELP = "mostrar ajuda"
+    SHOW_ITEMS = "mostrar itens"
+    PICK_ITEM = "pegar item"
 
 
 STOPWORDS = {"a", "o", "ao", "à", "em", "no", "na", "do", "da", "para"}
@@ -33,7 +33,11 @@ DEFAULT_ACTIONS: list[tuple[list[str], dict[str, Any], str]] = [
         {"action": ActionType.MOVE, "direction": "norte"},
         "Move-se para o norte",
     ),
-    (["sul"], {"action": ActionType.MOVE, "direction": "sul"}, "Move-se para o sul"),
+    (
+        ["sul"],
+        {"action": ActionType.MOVE, "direction": "sul"},
+        "Move-se para o sul",
+    ),
     (
         ["leste"],
         {"action": ActionType.MOVE, "direction": "leste"},
@@ -48,53 +52,53 @@ DEFAULT_ACTIONS: list[tuple[list[str], dict[str, Any], str]] = [
     # Ações de pegar e organizar itens
     (
         ["guardar", "<item>", "<in>"],
-        {"action": ActionType.STORE},
+        {"action": ActionType.STORE_ITEM},
         "Guarda um item na mochila ou cinto",
     ),
     (
         ["colocar", "<item>", "<in>"],
-        {"action": ActionType.STORE},
+        {"action": ActionType.STORE_ITEM},
         "Guarda um item na mochila ou cinto",
     ),
     (
+        ["pegar", "<item>"],
+        {"action": ActionType.PICK_ITEM},
+        "Pega um item do chão ou de um baú",
+    ),
+    (
         ["tirar", "<item>", "<from>"],
-        {"action": ActionType.DROP},
+        {"action": ActionType.DROP_ITEM},
         "Remove um item do cinto ou mochila",
     ),
     (
         ["retirar", "<item>", "<from>"],
-        {"action": ActionType.DROP},
+        {"action": ActionType.DROP_ITEM},
+        "Remove um item do cinto ou mochila",
+    ),
+    (
+        ["deixar", "<item>", "<from>"],
+        {"action": ActionType.DROP_ITEM},
         "Remove um item do cinto ou mochila",
     ),
     (
         ["remover", "<item>", "<from>"],
-        {"action": ActionType.DROP},
+        {"action": ActionType.DROP_ITEM},
         "Remove um item do cinto ou mochila",
     ),
     (
-        ["olhar", "mochila"],
-        {"action": ActionType.SHOW_BACKPACK},
-        "Mostra a mochila",
+        ["olhar", "<target>"],
+        {"action": ActionType.SHOW_ITEMS},
+        "Mostra a mochila, cinto, baú ou sala",
     ),
     (
-        ["mostrar", "mochila"],
-        {"action": ActionType.SHOW_BACKPACK},
-        "Mostra a mochila",
+        ["mostrar", "<target>"],
+        {"action": ActionType.SHOW_ITEMS},
+        "Mostra a mochila, cinto, baú ou sala",
     ),
     (
-        ["abrir", "mochila"],
-        {"action": ActionType.SHOW_BACKPACK},
-        "Mostra a mochila",
-    ),
-    (
-        ["olhar", "cinto"],
-        {"action": ActionType.SHOW_BELT},
-        "Mostra o cinto",
-    ),
-    (
-        ["mostrar", "cinto"],
-        {"action": ActionType.SHOW_BELT},
-        "Mostra o cinto",
+        ["abrir", "<target>"],
+        {"action": ActionType.SHOW_ITEMS},
+        "Mostra a mochila, cinto, baú ou sala",
     ),
     #
     # Equipar ou usar itens
@@ -104,13 +108,23 @@ DEFAULT_ACTIONS: list[tuple[list[str], dict[str, Any], str]] = [
         "Usa uma poção",
     ),
     (
+        ["usar", "<item>", "<from>"],
+        {"action": ActionType.USE_POTION},
+        "Usa uma poção",
+    ),
+    (
         ["beber", "<item>"],
         {"action": ActionType.USE_POTION},
         "Usa uma poção",
     ),
     (
+        ["beber", "<item>", "<from>"],
+        {"action": ActionType.USE_POTION},
+        "Usa uma poção",
+    ),
+    (
         ["equipar", "<item>"],
-        {"action": ActionType.EQUIP},
+        {"action": ActionType.EQUIP_WEAPON},
         "Equipa um item",
     ),
     #
@@ -244,9 +258,8 @@ class Actions:
 
 if __name__ == "__main__":
     trie = Actions()
-    print(trie.show_help())
 
-    assert trie.match("ir para norte") == {
+    assert trie.match("ir para o norte") == {
         "action": ActionType.MOVE,
         "direction": "norte",
     }
@@ -256,17 +269,17 @@ if __name__ == "__main__":
     }
 
     assert trie.match("guardar Espada de ferro na mochila") == {
-        "action": ActionType.STORE,
+        "action": ActionType.STORE_ITEM,
         "item": "espada de ferro",
         "in": "mochila",
     }
     assert trie.match("colocar poção de cura no cinto") == {
-        "action": ActionType.STORE,
+        "action": ActionType.STORE_ITEM,
         "item": "poção de cura",
         "in": "cinto",
     }
     assert trie.match("remover chave enferrujada do cinto") == {
-        "action": ActionType.DROP,
+        "action": ActionType.DROP_ITEM,
         "item": "chave enferrujada",
         "from": "cinto",
     }
@@ -276,7 +289,7 @@ if __name__ == "__main__":
         "item": "poção pequena",
     }
     assert trie.match("equipar espada de madeira") == {
-        "action": ActionType.EQUIP,
+        "action": ActionType.EQUIP_WEAPON,
         "item": "espada de madeira",
     }
 

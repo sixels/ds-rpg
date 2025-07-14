@@ -11,6 +11,7 @@ class Room:
 
     monster: Monster | None
     chest: Chest | None
+    chest_opened: bool = False
 
     def __init__(self, name):
         self.name = name
@@ -28,16 +29,16 @@ class Room:
         west: Optional["Room"] = None,
     ):
         """Define as saídas da sala."""
-        if north is not None:
+        if north:
             north.exits.south = self
-            self.exits.south = south
-        if south is not None:
-            south.exits.north = self
             self.exits.north = north
-        if east is not None:
+        if south:
+            south.exits.north = self
+            self.exits.south = south
+        if east:
             east.exits.west = self
             self.exits.east = east
-        if west is not None:
+        if west:
             west.exits.east = self
             self.exits.west = west
 
@@ -57,6 +58,19 @@ class Room:
     def set_chest(self, chest: Chest):
         """Define o baú da sala."""
         self.chest = chest
+
+    def get_exit(self, direction: str) -> Optional["Room"]:
+        """Retorna a sala de saída na direção especificada."""
+        if direction == "norte":
+            return self.exits.north
+        elif direction == "sul":
+            return self.exits.south
+        elif direction == "leste":
+            return self.exits.east
+        elif direction == "oeste":
+            return self.exits.west
+        else:
+            return None
 
 
 class Exits:
