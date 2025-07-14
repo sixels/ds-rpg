@@ -33,6 +33,7 @@ class Monster(Entity):
         self.name = name
         self.type = type
         self.base_health = base_health
+        self.current_health = self.base_health
         self.base_attack = base_attack
         self.level = level
 
