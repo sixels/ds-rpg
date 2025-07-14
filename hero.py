@@ -6,7 +6,6 @@ from entity import Entity
 from item import Item
 from item import Potion
 from item import Weapon
-from item import ItemType
 
 
 class Hero(Entity):
@@ -16,7 +15,7 @@ class Hero(Entity):
     base_attack: float
     backpack: Backpack
     belt: Belt
-    equipped_item: Item | None
+    equipped_item: Weapon | None
 
     def __init__(
         self,
@@ -120,10 +119,13 @@ class Hero(Entity):
 
     @override
     def take_damage(self, damage: int):
-        self.current_health -= damage
+        self.current_health = max(self.current_health - damage, 0)
 
     @override
     def attack(self, other: Entity) -> int:
-        attack_total = self.equipped_item.do_damage(other.type)
+        if self.equipped_item is None:
+            attack_total = self.base_attack
+        else:
+            attack_total = self.base_attack + self.equipped_item.do_damage(other.type)
         other.take_damage(attack_total)
         return attack_total
