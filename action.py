@@ -9,11 +9,11 @@ class ActionType(Enum):
     DROP_ITEM = "remover item"
     USE_POTION = "usar poção"
     EQUIP_WEAPON = "equipar arma"
-    UNEQUIP_WEAPON = "desequipar arma"
+    UNEQUIP_WEAPON = "desequipar"
     ATTACK = "atacar"
-    SHOW_HELP = "mostrar ajuda"
+    SHOW_HELP = "ajuda"
     SHOW_ITEMS = "mostrar itens"
-    SHOW_MAP = "mostrar mapa"
+    SHOW_MAP = "mapa"
     PICK_ITEM = "pegar item"
 
 

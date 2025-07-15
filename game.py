@@ -64,6 +64,7 @@ Diga o nome daquele que salvará o destino.""")
         typed_print("\nVocê abre as portas e entra no castelo.")
         while self.player.is_alive():
             typed_print(f'\nVocê está em "{self.current_room.name}".')
+            clear_screen()
             self.on_move_to_room()
 
             while True:
@@ -109,10 +110,11 @@ Diga o nome daquele que salvará o destino.""")
             ActionType.SHOW_MAP,
         }
 
+        # message = ""
+
         if self.current_room.monster and self.current_room.monster.is_alive():
-            typed_print(
-                f"Você se depara com um {self.current_room.monster.name} (level: {self.current_room.monster.level}, vida: {self.current_room.monster.base_health})."
-            )
+            # message += f"Você se depara com um {self.current_room.monster.name} (level: {self.current_room.monster.level}, vida: {self.current_room.monster.base_health}).\n"
+
             self.valid_actions.add(ActionType.ATTACK)
         else:
             self.valid_actions.add(ActionType.MOVE)
@@ -120,26 +122,25 @@ Diga o nome daquele que salvará o destino.""")
                 self.valid_actions.add(ActionType.PICK_ITEM)
                 self.valid_actions.add(ActionType.STORE_ITEM)
                 self.valid_actions.add(ActionType.SHOW_ITEMS)
-                typed_print("Você vê um baú no canto da sala.")
 
             if self.current_room.dropped_items:
                 self.valid_actions.add(ActionType.PICK_ITEM)
                 self.valid_actions.add(ActionType.STORE_ITEM)
                 self.valid_actions.add(ActionType.SHOW_ITEMS)
-                typed_print("Você vê alguns itens na sala:")
-                for item in self.current_room.dropped_items:
-                    show_item(item, listed=True)
 
-        if ActionType.MOVE in self.valid_actions:
-            typed_print("Saídas disponíveis:")
-            if self.current_room.exits.north:
-                typed_print("- Norte")
-            if self.current_room.exits.south:
-                typed_print("- Sul")
-            if self.current_room.exits.east:
-                typed_print("- Leste")
-            if self.current_room.exits.west:
-                typed_print("- Oeste")
+        self.handle_inspect({})
+        # typed_print(message)
+
+        # if ActionType.MOVE in self.valid_actions:
+        #     typed_print("Saídas disponíveis:")
+        #     if self.current_room.exits.north:
+        #         typed_print("- Norte")
+        #     if self.current_room.exits.south:
+        #         typed_print("- Sul")
+        #     if self.current_room.exits.east:
+        #         typed_print("- Leste")
+        #     if self.current_room.exits.west:
+        #         typed_print("- Oeste")
 
         return self.valid_actions
 
@@ -174,44 +175,50 @@ Diga o nome daquele que salvará o destino.""")
 
     def handle_inspect(self, _: dict) -> bool:
         """Inspeciona o ambiente e o personagem."""
-        print("-" * 10)
         typed_print(f"Você está em {self.current_room.name}.")
         self.player.health_bar.draw()
         typed_print(
-            f"Você está carregando {self.player.belt.current_weight} de peso no cinto (máximo: {self.player.belt.max_weight})."
+            f"\nVocê está carregando {self.player.belt.current_weight} de peso no cinto (máximo: {self.player.belt.max_weight})."
         )
+        for i, item in enumerate(self.player.belt.items):
+            if item:
+                show_item(item, listed=True)
+            else:
+                typed_print(f"  -{i + 1}: Vazio")
 
+        print()
         if len(self.player.backpack.items) == 0:
             typed_print("Sua mochila está vazia.")
         else:
             typed_print(
                 f"Você está com {len(self.player.backpack.items)} itens na mochila."
             )
+            typed_print("Item no topo da mochila:")
+            show_item(self.player.backpack.get_item(), listed=True)
 
         if self.player.equipped_item:
             typed_print(
-                f"Você está equipando: {self.player.equipped_item.name} (dano: {self.player.equipped_item.damage}, raridade: {self.player.equipped_item.rarity.type.value})"
+                f"\nVocê está equipando: {self.player.equipped_item.name} (dano: {self.player.equipped_item.damage}, raridade: {self.player.equipped_item.rarity.type.value})"
             )
-        else:
-            typed_print("Você não está equipando nenhuma arma.")
 
         if self.current_room.monster and self.current_room.monster.is_alive():
             typed_print(
-                f"Você vê um {self.current_room.monster.name} (level: {self.current_room.monster.level}, vida: {self.current_room.monster.base_health})."
+                f"\nVocê vê um {self.current_room.monster.name} (level: {self.current_room.monster.level}, vida: {self.current_room.monster.base_health})."
             )
         else:
-            typed_print("Não há monstros na sala.")
             if self.current_room.chest:
-                typed_print("Você vê um baú no canto da sala.")
-                if self.current_room.chest_opened:
-                    typed_print("O baú está aberto.")
-                else:
-                    typed_print("O baú está fechado. Você pode abri-lo.")
+                typed_print(
+                    f"\nVocê vê um baú {
+                        'aberto' if self.current_room.chest_opened else 'fechado'
+                    } no canto da sala."
+                )
             if self.current_room.dropped_items:
                 typed_print("Você vê alguns itens na sala")
+                for item in self.current_room.dropped_items:
+                    show_item(item, listed=True)
 
         if ActionType.MOVE in self.valid_actions:
-            typed_print("Saídas disponíveis:")
+            typed_print("\nSaídas disponíveis:")
             if self.current_room.exits.north:
                 typed_print("- Norte")
             if self.current_room.exits.south:
@@ -220,7 +227,12 @@ Diga o nome daquele que salvará o destino.""")
                 typed_print("- Leste")
             if self.current_room.exits.west:
                 typed_print("- Oeste")
-        print("-" * 10 + "\n")
+
+        typed_print(
+            "\nAções disponíveis: "
+            + ", ".join(action.value for action in self.valid_actions)
+            + " use 'ajuda' para ver a lista em detalhes."
+        )
 
         return False
 
