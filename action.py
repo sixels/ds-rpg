@@ -3,20 +3,33 @@ from enum import Enum
 
 
 class ActionType(Enum):
+    INSPECT = "inspecionar"
     MOVE = "mover"
     STORE_ITEM = "guardar item"
     DROP_ITEM = "remover item"
     USE_POTION = "usar poção"
     EQUIP_WEAPON = "equipar arma"
+    UNEQUIP_WEAPON = "desequipar arma"
     ATTACK = "atacar"
     SHOW_HELP = "mostrar ajuda"
     SHOW_ITEMS = "mostrar itens"
+    SHOW_MAP = "mostrar mapa"
     PICK_ITEM = "pegar item"
 
 
 STOPWORDS = {"a", "o", "ao", "à", "em", "no", "na", "do", "da", "para"}
 
 DEFAULT_ACTIONS: list[tuple[list[str], dict[str, Any], str]] = [
+    (
+        ["inspecionar"],
+        {"action": ActionType.INSPECT},
+        "Inspeciona o ambiente e o personagem",
+    ),
+    (
+        ["mapa"],
+        {"action": ActionType.SHOW_MAP},
+        "Mostra o mapa do jogo",
+    ),
     # Ações de movimento
     (
         ["ir", "<direction>"],
@@ -54,6 +67,11 @@ DEFAULT_ACTIONS: list[tuple[list[str], dict[str, Any], str]] = [
         ["guardar", "<item>", "<in>"],
         {"action": ActionType.STORE_ITEM},
         "Guarda um item na mochila ou cinto",
+    ),
+    (
+        ["desequipar"],
+        {"action": ActionType.UNEQUIP_WEAPON},
+        "Desequipa a arma equipada",
     ),
     (
         ["colocar", "<item>", "<in>"],
@@ -121,6 +139,11 @@ DEFAULT_ACTIONS: list[tuple[list[str], dict[str, Any], str]] = [
         ["beber", "<item>", "<from>"],
         {"action": ActionType.USE_POTION},
         "Usa uma poção",
+    ),
+    (
+        ["equipar", "<item>", "<from>"],
+        {"action": ActionType.EQUIP_WEAPON},
+        "Equipa um item",
     ),
     (
         ["equipar", "<item>"],

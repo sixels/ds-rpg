@@ -67,7 +67,11 @@ Diga o nome daquele que salvará o destino.""")
             self.on_move_to_room()
 
             while True:
-                command = input("> Sua ação: ").strip().lower()
+                try:
+                    command = input("> Sua ação: ").strip().lower()
+                except UnicodeDecodeError:
+                    typed_print("Erro ao ler o comando. Tente novamente.")
+                    continue
                 command = actions.match(command)
                 if command is None:
                     typed_print("Ação inválida")
@@ -92,6 +96,9 @@ Diga o nome daquele que salvará o destino.""")
             ActionType.USE_POTION,
             ActionType.DROP_ITEM,
             ActionType.STORE_ITEM,
+            ActionType.UNEQUIP_WEAPON,
+            ActionType.INSPECT,
+            ActionType.SHOW_MAP,
         }
 
         if self.current_room.monster and self.current_room.monster.is_alive():
@@ -111,7 +118,7 @@ Diga o nome daquele que salvará o destino.""")
                 self.valid_actions.add(ActionType.PICK_ITEM)
                 self.valid_actions.add(ActionType.STORE_ITEM)
                 self.valid_actions.add(ActionType.SHOW_ITEMS)
-                typed_print("Você vê alguns itens no chão:")
+                typed_print("Você vê alguns itens na sala:")
                 for item in self.current_room.dropped_items:
                     show_item(item, listed=True)
 
@@ -130,6 +137,7 @@ Diga o nome daquele que salvará o destino.""")
 
     def on_action(self, command: dict) -> bool:
         command_handlers = {
+            ActionType.INSPECT: self.handle_inspect,
             ActionType.MOVE: self.handle_move,
             ActionType.STORE_ITEM: self.handle_store_item,
             ActionType.DROP_ITEM: self.handle_drop_item,
@@ -139,6 +147,8 @@ Diga o nome daquele que salvará o destino.""")
             ActionType.SHOW_HELP: self.handle_help,
             ActionType.SHOW_ITEMS: self.handle_show_items,
             ActionType.PICK_ITEM: self.handle_pick_item,
+            ActionType.UNEQUIP_WEAPON: self.handle_unequip_weapon,
+            ActionType.SHOW_MAP: self.handle_show_map,
         }
 
         handler = command_handlers.get(command["action"])
@@ -152,6 +162,56 @@ Diga o nome daquele que salvará o destino.""")
         """Mostra a ajuda."""
         actions = Actions()
         typed_print(actions.show_help)
+        return False
+
+    def handle_inspect(self, _: dict) -> bool:
+        """Inspeciona o ambiente e o personagem."""
+        print("-" * 10)
+        typed_print(f"Você está em {self.current_room.name}.")
+        self.player.health_bar.draw()
+        typed_print(
+            f"Você está carregando {self.player.belt.current_weight} de peso no cinto (máximo: {self.player.belt.max_weight})."
+        )
+
+        if len(self.player.backpack.items) == 0:
+            typed_print("Sua mochila está vazia.")
+        else:
+            typed_print(
+                f"Você está com {len(self.player.backpack.items)} itens na mochila."
+            )
+
+        if self.player.equipped_item:
+            typed_print(f"Você está equipando: {self.player.equipped_item.name}.")
+        else:
+            typed_print("Você não está equipando nenhuma arma.")
+
+        if self.current_room.monster and self.current_room.monster.is_alive():
+            typed_print(
+                f"Você vê um {self.current_room.monster.name} (level: {self.current_room.monster.level}, vida: {self.current_room.monster.base_health})."
+            )
+        else:
+            typed_print("Não há monstros na sala.")
+            if self.current_room.chest:
+                typed_print("Você vê um baú no canto da sala.")
+                if self.current_room.chest_opened:
+                    typed_print("O baú está aberto.")
+                else:
+                    typed_print("O baú está fechado. Você pode abri-lo.")
+            if self.current_room.dropped_items:
+                typed_print("Você vê alguns itens na sala")
+
+        if ActionType.MOVE in self.valid_actions:
+            typed_print("Saídas disponíveis:")
+            if self.current_room.exits.north:
+                typed_print("- Norte")
+            if self.current_room.exits.south:
+                typed_print("- Sul")
+            if self.current_room.exits.east:
+                typed_print("- Leste")
+            if self.current_room.exits.west:
+                typed_print("- Oeste")
+        print("-" * 10 + "\n")
+
         return False
 
     def handle_move(self, command: dict) -> bool:
@@ -184,7 +244,7 @@ Diga o nome daquele que salvará o destino.""")
         # clear_screen()
         monster = self.current_room.monster
         _damage = self.player.attack(monster)
-        self.player.health_bar.draw()
+        monster.health_bar.draw()
 
         if not monster.is_alive():
             self.current_room.monster = None
@@ -193,10 +253,11 @@ Diga o nome daquele que salvará o destino.""")
             )
 
             self.on_move_to_room()
-            return False
         else:
             _monster_damage = monster.attack(self.player)
-            monster.health_bar.draw()
+            self.player.health_bar.draw()
+
+        return False
 
     def handle_pick_item(self, command: dict) -> bool:
         """Armazena um item no cinto ou na mochila."""
@@ -206,63 +267,87 @@ Diga o nome daquele que salvará o destino.""")
             return False
         item = item.lower()
 
-        item_found = False
+        items_found = []
 
         if self.current_room.chest_opened:
             for chest_item in self.current_room.chest.list_itens():
                 if chest_item.name().lower().startswith(item.lower()):
                     item = chest_item.pick_item()
-                    item_found = True
+                    items_found.append(item)
                     break
-        if not item_found and self.current_room.dropped_items:
+        if self.current_room.dropped_items:
             for dropped_item in self.current_room.dropped_items:
                 if dropped_item.name.lower().startswith(item.lower()):
                     item = dropped_item
                     self.current_room.dropped_items.remove(dropped_item)
-                    item_found = True
+                    items_found.append(item)
                     break
 
-        if not item_found:
+        if not items_found:
             typed_print("Item não encontrado")
             return False
 
-        target = (
-            input(
-                f"> Onde você deseja armazenar o item? ({'equipar/' if type(item) is Weapon else ''}cinto/mochila): "
-            )
-            .strip()
-            .lower()
-        )
+        if len(items_found) > 1:
+            typed_print("Mais de um item encontrado.")
+            for idx, found_item in enumerate(items_found, start=1):
+                typed_print(f"{idx}. {found_item.name} (peso: {found_item.weight})")
+            while True:
+                choice = input("> Qual item você deseja pegar? (digite o número): ")
+                choice = int(choice) - 1
+                if choice < 0 or choice >= len(items_found):
+                    typed_print("Escolha inválida.")
+                    continue
+                item = items_found[choice]
+                break
+        else:
+            item = items_found[0]
 
-        if type(item) is Weapon:
-            if "equipar".startswith(target):
+        while True:
+            target = (
+                input(
+                    f'> Onde você deseja armazenar "{item.name}" (peso: {item.weight})? ({"equipar/" if type(item) is Weapon else ""}cinto/mochila): '
+                )
+                .strip()
+                .lower()
+            )
+
+            if type(item) is Weapon and "equipar".startswith(target):
                 if self.player.equipped_item:
                     typed_print(
                         f"Você já está equipando {self.player.equipped_item.name}. Guarde-o primeiro."
                     )
+                    typed_print("Você derruba o item no chão.")
+                    self.current_room.add_item(item)
                     return False
-
                 self.player.equipped_item = item
                 typed_print(f'Você equipa "{item.name}".')
-        elif "cinto".startswith(target):
-            index = self.find_player_belt_empty_slot()
-            if index == -1:
-                typed_print("Cinto cheio. Não é possível armazenar mais itens.")
-                return False
+                break
+            elif "cinto".startswith(target):
+                index = self.find_player_belt_empty_slot()
+                if index == -1:
+                    typed_print("Cinto cheio. Não é possível armazenar mais itens.")
+                    typed_print("Você derruba o item no chão.")
+                    self.current_room.add_item(item)
+                    return False
+                if self.player.store_item_in_belt(index, item):
+                    typed_print(f'Você coloca "{item.name} no cinto.')
+                else:
+                    typed_print(
+                        f'Você tenta colocar "{item.name}" no cinto, mas ele é muito pesado.'
+                    )
+                    typed_print("Você derruba o item no chão.")
+                    self.current_room.add_item(item)
+                break
+            elif "mochila".startswith(target):
+                if self.player.store_item_in_backpack(item):
+                    typed_print(f'Você coloca "{item.name}" na mochila.')
+                else:
+                    typed_print("Não foi possível armazenar o item na mochila.")
+                    typed_print("Você derruba o item no chão.")
+                break
+            else:
+                typed_print("Destino inválido para armazenamento. Tente novamente.")
 
-            if self.player.store_item_in_belt(index, item):
-                typed_print(f'Você coloca "{item.name} no cinto.')
-            else:
-                typed_print(
-                    f'Você tenta colocar "{item.name}" no cinto, mas ele é muito pesado.'
-                )
-        elif "mochila".startswith(target):
-            if self.player.store_item_in_backpack(item):
-                typed_print(f'Você coloca "{item.name}" na mochila.')
-            else:
-                typed_print("Não foi possível armazenar o item na mochila.")
-        else:
-            typed_print("Destino inválido para armazenamento.")
         return False
 
     def handle_store_item(self, command: dict) -> bool:
@@ -283,6 +368,7 @@ Diga o nome daquele que salvará o destino.""")
         if "equipado".startswith(item) or "item equipado".startswith(item):
             if self.player.equipped_item:
                 item = self.player.equipped_item
+                self.player.equipped_item = None
                 item_found = True
         elif (
             self.player.equipped_item
@@ -366,18 +452,56 @@ Diga o nome daquele que salvará o destino.""")
         if not item:
             typed_print("Nenhum item especificado para usar.")
             return False
-        item = item.lower()
+        item_name = item.lower()
 
         from_location = command.get("from")
+
+        if not from_location or "mochila".startswith(from_location):
+            backpack_item = self.player.backpack.get_item()
+            if backpack_item and backpack_item.name.lower().startswith(item_name):
+                if type(backpack_item) is Potion:
+                    if self.player.use_item_from_backpack():
+                        typed_print(
+                            f"Você usa {backpack_item.name} da mochila e recupera {backpack_item.healing_amount}.\nSua vida atual é {self.player.get_current_health()}."
+                        )
+                    else:
+                        typed_print(
+                            f"Não foi possível usar {backpack_item.name} da mochila."
+                        )
+                    return False
         if not from_location or "cinto".startswith(from_location):
-            print("olhando o cinto ")
+            found_items: list[tuple[int, Item]] = []
             for i in range(self.player.belt.size):
                 belt_item = self.player.belt.get_item(i)
-                if belt_item is None:
-                    print("Vazio")
-                else:
-                    print(f"item {belt_item.name} no cinto")
-                if belt_item and belt_item.name.lower().startswith(item):
+                if belt_item and belt_item.name.lower().startswith(item_name):
+                    found_items.insert(0, (i, belt_item))
+
+            if len(found_items) == 1:
+                i, belt_item = found_items[0]
+                if type(belt_item) is Potion:
+                    if self.player.use_item_from_belt(i):
+                        typed_print(
+                            f"Você usa {belt_item.name} do cinto e recupera {belt_item.healing_amount}.\nSua vida atual é {self.player.get_current_health()}."
+                        )
+                    else:
+                        typed_print(f"Não foi possível usar {belt_item.name} do cinto.")
+                    return False
+            elif len(found_items) > 1:
+                typed_print("Mais de um item encontrado no cinto.")
+                for idx, (i, belt_item) in enumerate(found_items, start=1):
+                    typed_print(f"{idx}. {belt_item.name} (peso: {belt_item.weight})")
+                while True:
+                    choice = input("> Qual poção você deseja usar? (digite o número): ")
+                    try:
+                        choice = int(choice) - 1
+                    except ValueError:
+                        typed_print("Entrada inválida. Digite um número.")
+                        continue
+
+                    if choice < 0 or choice >= len(found_items):
+                        typed_print("Escolha inválida.")
+                        continue
+                    i, belt_item = found_items[choice]
                     if type(belt_item) is Potion:
                         if self.player.use_item_from_belt(i):
                             typed_print(
@@ -389,20 +513,6 @@ Diga o nome daquele que salvará o destino.""")
                             )
                         return False
 
-        elif not from_location or "mochila".startswith(from_location):
-            backpack_item = self.player.backpack.get_item()
-            if backpack_item and backpack_item.name.lower().startswith(item):
-                if type(backpack_item) is Potion:
-                    if self.player.use_item_from_backpack():
-                        typed_print(
-                            f"Você usa {backpack_item.name} da mochila e recupera {backpack_item.healing_amount}.\nSua vida atual é {self.player.get_current_health()}."
-                        )
-                    else:
-                        typed_print(
-                            f"Não foi possível usar {backpack_item.name} da mochila."
-                        )
-                    return False
-
         typed_print(f"Item {item} não encontrado.")
         return False
 
@@ -412,7 +522,7 @@ Diga o nome daquele que salvará o destino.""")
 
         if "cinto".startswith(target):
             typed_print("Itens no cinto:")
-            for i, item in enumerate(self.player.belt.items):
+            for item in self.player.belt.items:
                 if item:
                     show_item(item, listed=True)
                 else:
@@ -424,7 +534,7 @@ Diga o nome daquele que salvará o destino.""")
                 return False
 
             typed_print("Itens na mochila:")
-            for i, item in enumerate(self.player.backpack.items):
+            for item in reversed(self.player.backpack.items):
                 show_item(item, listed=True)
 
         elif "baú".startswith(target) or "bau".startswith(target):
@@ -451,18 +561,18 @@ Diga o nome daquele que salvará o destino.""")
 
     def handle_equip_weapon(self, command: dict) -> bool:
         """Equipa uma arma do cinto ou da mochila."""
-        item = command.get("item")
-        if not item:
+        item_name = command.get("item")
+        if not item_name:
             typed_print("Nenhum item especificado para equipar.")
             return False
-        item = item.lower()
+        item_name = item_name.lower()
 
         from_location = command.get("from")
 
-        if not from_location or "cinto".startswith(from_location):
+        if from_location is None or "cinto".startswith(from_location):
             for i in range(self.player.belt.size):
                 belt_item = self.player.belt.get_item(i)
-                if belt_item and belt_item.name.lower().startswith(item):
+                if belt_item and belt_item.name.lower().startswith(item_name):
                     if type(belt_item) is Weapon:
                         if self.player.use_item_from_belt(i):
                             typed_print(f"Equipou {belt_item.name} do cinto.")
@@ -472,9 +582,9 @@ Diga o nome daquele que salvará o destino.""")
                             )
                         return False
 
-        elif not from_location or "mochila".startswith(from_location):
+        if from_location is None or "mochila".startswith(from_location):
             backpack_item = self.player.backpack.get_item()
-            if backpack_item and backpack_item.name.lower().startswith(item):
+            if backpack_item and backpack_item.name.lower().startswith(item_name):
                 if type(backpack_item) is Weapon:
                     if self.player.use_item_from_backpack():
                         typed_print(f"Equipou {backpack_item.name} da mochila.")
@@ -484,7 +594,103 @@ Diga o nome daquele que salvará o destino.""")
                         )
                     return False
 
-        typed_print(f"Item {item} não encontrado.")
+        if (
+            from_location is None
+            or "chão".startswith(from_location)
+            or "sala".startswith(from_location)
+        ):
+            item = self.take_item_from_floor(item_name)
+            if item and type(item) is Weapon:
+                if self.player.equipped_item:
+                    typed_print(
+                        f"Você já está equipando {self.player.equipped_item.name}. Guarde-o primeiro."
+                    )
+                    typed_print("Você derruba o item no chão.")
+                    self.current_room.add_item(item)
+                    return False
+                self.player.equipped_item = item
+                typed_print(f'Você equipa "{item.name}".')
+                return False
+
+        if (
+            from_location is None
+            or "bau".startswith(from_location)
+            or "baú".startswith(from_location)
+        ):
+            if not self.current_room.chest_opened:
+                typed_print("O baú não está aberto.")
+                return False
+
+            for chest_item in self.current_room.chest.list_itens():
+                if chest_item.name().lower().startswith(item_name):
+                    item = chest_item.view_item()
+                    if type(item) is Weapon:
+                        if self.player.equipped_item:
+                            typed_print(
+                                f"Você já está equipando {self.player.equipped_item.name}. Guarde-o primeiro."
+                            )
+                            return False
+                        self.player.equipped_item = chest_item.pick_item()
+                        typed_print(f'Você equipa "{self.player.equipped_item.name}".')
+                        return False
+
+        typed_print(f"Item {item_name} não encontrado.")
+        return False
+
+    def handle_unequip_weapon(self, _: dict) -> bool:
+        """Desequipa a arma equipada."""
+        if self.player.equipped_item:
+            while True:
+                target = (
+                    input(
+                        f'> Onde você deseja colocar "{self.player.equipped_item.name}"? (cinto/mochila): '
+                    )
+                    .strip()
+                    .lower()
+                )
+                if "cinto".startswith(target):
+                    index = self.find_player_belt_empty_slot()
+                    if index == -1:
+                        typed_print("Cinto cheio. Não é possível armazenar mais itens.")
+                        return False
+                    if self.player.store_item_in_belt(index, self.player.equipped_item):
+                        typed_print(
+                            f'Você coloca "{self.player.equipped_item.name}" no cinto.'
+                        )
+                        self.player.equipped_item = None
+                    else:
+                        typed_print(
+                            f'Não foi possível colocar "{self.player.equipped_item.name}" no cinto.'
+                        )
+                    break
+                elif "mochila".startswith(target):
+                    if self.player.store_item_in_backpack(self.player.equipped_item):
+                        typed_print(
+                            f'Você coloca "{self.player.equipped_item.name}" na mochila.'
+                        )
+                        self.player.equipped_item = None
+                    else:
+                        typed_print(
+                            f'Não foi possível colocar "{self.player.equipped_item.name}" na mochila.'
+                        )
+                    break
+                else:
+                    typed_print("Destino inválido para armazenamento. Tente novamente.")
+        else:
+            typed_print("Você não está equipando nenhuma arma.")
+        return False
+
+    def handle_show_map(self, _: dict) -> bool:
+        """Mostra o mapa do jogo."""
+        typed_print("""
+                         sala 6 -- sala 7
+                           |         |
+    entrada -- sala 4 -- sala 5 -- sala 8 --  sala 12 - sala 13
+      |         |          |                    |
+    sala 2 -- sala 3     sala 9 -- sala 10 -- sala 11
+                                     |
+                                   sala 14
+""")
         return False
 
     def take_item_from_room(self, item_name: str) -> Item | None:
@@ -499,6 +705,14 @@ Diga o nome daquele que salvará o destino.""")
                 self.current_room.dropped_items.remove(dropped_item)
                 return dropped_item
 
+        return None
+
+    def take_item_from_floor(self, item_name: str) -> Item | None:
+        """Procura um item pelo nome no chão da sala atual."""
+        for dropped_item in self.current_room.dropped_items:
+            if dropped_item.name.lower().startswith(item_name.lower()):
+                self.current_room.dropped_items.remove(dropped_item)
+                return dropped_item
         return None
 
     def find_player_belt_empty_slot(self) -> int:
@@ -542,10 +756,10 @@ def setup_game_rooms() -> Room:
 
     room2.set_exits(east=room3)
     room2.set_monster(GAME_MONSTERS[0])
-    room2.set_chest(generate_random_chest())
+    room2.set_chest(generate_common_chest())
 
     room3.set_exits(north=room4)
-    room3.set_chest(generate_uncommon_chest())
+    room3.set_chest(generate_common_chest())
 
     room4.set_exits(east=room5)
     room4.set_chest(generate_common_chest())
@@ -569,7 +783,6 @@ def setup_game_rooms() -> Room:
 
     room10.set_exits(east=room11, south=room14)
     room10.set_monster(GAME_MONSTERS[4])
-    room10.set_chest(generate_legendary_chest())
 
     room11.set_exits(north=room12)
     room11.set_chest(generate_random_chest())
@@ -580,6 +793,8 @@ def setup_game_rooms() -> Room:
 
     room13.set_exits(south=room12)
     room13.set_monster(GAME_MONSTERS[8])
+
+    room14.set_chest(generate_legendary_chest())
 
     assert entry_room.exits.south == room2, (
         "Erro ao definir a saída sul da sala de entrada."
