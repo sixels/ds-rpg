@@ -4,7 +4,7 @@ from enum import Enum
 
 class ActionType(Enum):
     INSPECT = "inspecionar"
-    MOVE = "mover"
+    MOVE = "ir para"
     STORE_ITEM = "guardar item"
     DROP_ITEM = "remover item"
     USE_POTION = "usar poção"
