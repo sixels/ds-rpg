@@ -759,10 +759,10 @@ def setup_game_rooms() -> Room:
     room2.set_chest(generate_common_chest())
 
     room3.set_exits(north=room4)
-    room3.set_chest(generate_common_chest())
+    room3.set_chest(generate_uncommon_chest())
 
     room4.set_exits(east=room5)
-    room4.set_chest(generate_common_chest())
+    room4.set_chest(generate_random_chest())
 
     room5.set_exits(north=room6, south=room9, east=room8)
     room5.set_monster(GAME_MONSTERS[1])
@@ -783,6 +783,7 @@ def setup_game_rooms() -> Room:
 
     room10.set_exits(east=room11, south=room14)
     room10.set_monster(GAME_MONSTERS[4])
+    room10.set_chest(generate_epic_chest())
 
     room11.set_exits(north=room12)
     room11.set_chest(generate_random_chest())
@@ -791,7 +792,6 @@ def setup_game_rooms() -> Room:
     room12.set_monster(GAME_MONSTERS[7])
     room12.set_chest(generate_random_chest())
 
-    room13.set_exits(south=room12)
     room13.set_monster(GAME_MONSTERS[8])
 
     room14.set_chest(generate_legendary_chest())

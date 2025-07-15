@@ -31,10 +31,10 @@ class Chest:
             rarity_order_value = rarity_order(self.rarity)
 
             if rarity_order_value > item_order_value:
-                item.rarity.weight -= (
+                new_weight = rarity.weight - (
                     rarity.weight * 0.3 * (rarity_order_value - item_order_value)
                 )
-                item.rarity.weight = max(item.rarity.weight, 0)
+                item.rarity.weight = max(new_weight, 0)
 
         for _ in range(n_items):
             item = rng.pick_random_item(possible_items)
@@ -143,3 +143,37 @@ def rarity_order(rarity: Rarity) -> int:
     elif rarity.type == RARITY_LEGENDARY.type:
         return 4
     raise ValueError(f"Raridade desconhecida: {rarity.type}")
+
+
+if __name__ == "__main__":
+    # Testando a geração de baús
+    common_chest = generate_common_chest()
+    print(
+        f"Baú Comum: {[item.view_item().rarity.type.value for item in common_chest.list_itens()]}"
+    )
+
+    uncommon_chest = generate_uncommon_chest()
+    print(
+        f"Baú Incomum: {[item.view_item().rarity.type.value for item in uncommon_chest.list_itens()]}"
+    )
+
+    rare_chest = generate_rare_chest()
+    print(
+        f"Baú Raro: {[item.view_item().rarity.type.value for item in rare_chest.list_itens()]}"
+    )
+
+    epic_chest = generate_epic_chest()
+    print(
+        f"Baú Épico: {[item.view_item().rarity.type.value for item in epic_chest.list_itens()]}"
+    )
+
+    legendary_chest = generate_legendary_chest()
+    print(
+        f"Baú Lendário: {[item.view_item().rarity.type.value for item in legendary_chest.list_itens()]}"
+    )
+    random_chest = generate_random_chest()
+    print(
+        f"Baú Aleatório: {[item.view_item().rarity.type.value for item in random_chest.list_itens()]}"
+    )
+    assert len(random_chest.list_itens()) > 0, "O baú aleatório deve conter itens."
+    print("Todos os testes de baús passaram com sucesso!")
