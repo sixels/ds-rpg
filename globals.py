@@ -52,7 +52,7 @@ GAME_MONSTERS = [
         base_attack=10,
         level=2,
     ),
-     Monster(
+    Monster(
         "Vampiro Superior",
         MonsterType.Vampire,
         base_health=80,
@@ -69,13 +69,10 @@ GAME_MONSTERS = [
     Monster(
         "Espírito do Rei",
         MonsterType.Spirit,
-        base_health=100,
-        base_attack=10,
+        base_health=150,
+        base_attack=20,
         level=3,
-    )
-
-
-    
+    ),
 ]
 GAME_WEAPONS = [
     Weapon(
