@@ -1,13 +1,18 @@
 from action import Actions, ActionType
-from chest import generate_random_chest, generate_common_chest,generate_epic_chest,generate_legendary_chest,generate_rare_chest,generate_uncommon_chest
+from chest import (
+    generate_random_chest,
+    generate_common_chest,
+    generate_epic_chest,
+    generate_legendary_chest,
+    generate_uncommon_chest,
+)
 from hero import Hero
 from item import Item, Potion, Weapon
 from misc import clear_screen, typed_print
-from monster import Monster, MonsterType
 from rarity import RARITY_COMMON
 from room import Room
 from globals import GAME_MONSTERS
-from health_bar import HealthBar
+
 HERO_BASE_HEALTH = 100
 HERO_BASE_ATTACK = 5
 HERO_BELT_SIZE = 5
@@ -175,10 +180,10 @@ Diga o nome daquele que salvará o destino.""")
         if target and target != "monstro" and target != self.current_room.monster.name:
             typed_print(f"Você não pode atacar {target} aqui.")
             return False
-        
-        clear_screen()
+
+        # clear_screen()
         monster = self.current_room.monster
-        damage = self.player.attack(monster)
+        _damage = self.player.attack(monster)
         self.player.health_bar.draw()
 
         if not monster.is_alive():
@@ -190,7 +195,7 @@ Diga o nome daquele que salvará o destino.""")
             self.on_move_to_room()
             return False
         else:
-            monster_damage = monster.attack(self.player)
+            _monster_damage = monster.attack(self.player)
             monster.health_bar.draw()
 
     def handle_pick_item(self, command: dict) -> bool:
@@ -368,7 +373,7 @@ Diga o nome daquele que salvará o destino.""")
             print("olhando o cinto ")
             for i in range(self.player.belt.size):
                 belt_item = self.player.belt.get_item(i)
-                if belt_item == None:
+                if belt_item is None:
                     print("Vazio")
                 else:
                     print(f"item {belt_item.name} no cinto")
@@ -541,7 +546,7 @@ def setup_game_rooms() -> Room:
 
     room3.set_exits(north=room4)
     room3.set_chest(generate_uncommon_chest())
-  
+
     room4.set_exits(east=room5)
     room4.set_chest(generate_common_chest())
 
@@ -575,8 +580,6 @@ def setup_game_rooms() -> Room:
 
     room13.set_exits(south=room12)
     room13.set_monster(GAME_MONSTERS[8])
-
-
 
     assert entry_room.exits.south == room2, (
         "Erro ao definir a saída sul da sala de entrada."
