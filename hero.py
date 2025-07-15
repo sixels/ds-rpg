@@ -97,11 +97,14 @@ class Hero(Entity):
 
         Retorna True se o uso for bem-sucedido, False caso contrário.
         """
-        item = self.backpack.pick_item
+        item = self.backpack.pick_item()
         if type(item) is Weapon:
             if self.equipped_item is None:
                 self.equipped_item = item
                 return True
+            else:
+                self.backpack.insert_item(item)
+                return False
         elif type(item) is Potion:
             healing_need = self.base_health - self.current_health
             actual_healing = min(item.healing_amount, healing_need)
@@ -109,7 +112,6 @@ class Hero(Entity):
             return True
         else:
             return False
-        return False
 
     @override
     def get_total_health(self) -> int:
