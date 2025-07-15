@@ -25,7 +25,7 @@ class Game:
     entry_room: Room
 
     def __init__(self):
-        self.entry_room = setup_game_rooms()
+        self.entry_room, self.final_room = setup_game_rooms()
         self.current_room = self.entry_room
 
     def __reset(self):
@@ -87,6 +87,14 @@ Diga o nome daquele que salvará o destino.""")
                 if not self.player.is_alive():
                     typed_print("Você foi derrotado! Fim do jogo.")
                     break
+
+                if not self.final_room.monster.is_alive():
+                    typed_print(
+                        "Você derrotou o espírito do rei e impediu a maldição de se espalhar.\n"
+                        + f'Todos vão lembrar de "{self.player.name}" como o herói que salvou o reino!'
+                    )
+                    typed_print("Você completou o jogo!")
+                    return
 
     def on_move_to_room(self) -> set:
         self.valid_actions: set = {
@@ -181,7 +189,9 @@ Diga o nome daquele que salvará o destino.""")
             )
 
         if self.player.equipped_item:
-            typed_print(f"Você está equipando: {self.player.equipped_item.name}.")
+            typed_print(
+                f"Você está equipando: {self.player.equipped_item.name} (dano: {self.player.equipped_item.damage}, raridade: {self.player.equipped_item.rarity.type.value})"
+            )
         else:
             typed_print("Você não está equipando nenhuma arma.")
 
@@ -290,7 +300,8 @@ Diga o nome daquele que salvará o destino.""")
         if len(items_found) > 1:
             typed_print("Mais de um item encontrado.")
             for idx, found_item in enumerate(items_found, start=1):
-                typed_print(f"{idx}. {found_item.name} (peso: {found_item.weight})")
+                print(f"{idx}. ", end="")
+                show_item(found_item, listed=False)
             while True:
                 choice = input("> Qual item você deseja pegar? (digite o número): ")
                 choice = int(choice) - 1
@@ -489,7 +500,8 @@ Diga o nome daquele que salvará o destino.""")
             elif len(found_items) > 1:
                 typed_print("Mais de um item encontrado no cinto.")
                 for idx, (i, belt_item) in enumerate(found_items, start=1):
-                    typed_print(f"{idx}. {belt_item.name} (peso: {belt_item.weight})")
+                    print(f"{idx}. ", end="")
+                    show_item(belt_item, listed=False)
                 while True:
                     choice = input("> Qual poção você deseja usar? (digite o número): ")
                     try:
@@ -723,7 +735,7 @@ Diga o nome daquele que salvará o destino.""")
         return -1
 
 
-def setup_game_rooms() -> Room:
+def setup_game_rooms() -> tuple[Room, Room]:
     """
     Configura as salas e suas conexões.
 
@@ -818,7 +830,7 @@ def setup_game_rooms() -> Room:
         )
     )
 
-    return entry_room
+    return entry_room, room13
 
 
 def show_item(item: Item, listed: bool = False):
